@@ -5,7 +5,7 @@ import cv2
 import pytesseract
 
 # Mention the installed location of Tesseract-OCR in your system
-pytesseract.pytesseract.tesseract_cmd = "C://Users//chris//Downloads//why"
+pytesseract.pytesseract.tesseract_cmd = "C://Users//Aditya Ojha//Downloads//tesseract-5.2.0//tesseract-5.2.0"
 
 vid = cv2.VideoCapture(0)
 
