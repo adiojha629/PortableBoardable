@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-
+# based on https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
 cap = cv2.VideoCapture(0)
 
 # We are going to track the motion of corners that show up
@@ -20,7 +20,7 @@ color = np.random.randint(0, 255, (100, 3))
 ret, old_frame = cap.read()
 old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
 p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **feature_params)
-
+print(p0)
 # Create a mask image for drawing purposes
 mask = np.zeros_like(old_frame)
 
