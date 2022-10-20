@@ -19,7 +19,11 @@ def click_event(event,x,y,flags,params):
         print(x," ",y)
         # set p0
         global p0, pFlag
-        p0 = np.array([x,y]).reshape((1,1,2)).astype(np.float32)
+        p0 = np.array([[x,y],
+                        [x+10,y],
+                        [x-10,y],
+                        [x,y+10],
+                        [x,y-10]]).reshape((-1,1,2)).astype(np.float32)
         print(p0)
         pFlag = True
 
@@ -29,7 +33,7 @@ if __name__ == '__main__':
     maskFlag = False
     while(1):
         ret, frame = cap.read()
-        frame = cv2.flip(frame,1)
+        #frame = cv2.flip(frame,1)
         if not ret: # check that we have a video
             print('No frames grabbed!')
             break
