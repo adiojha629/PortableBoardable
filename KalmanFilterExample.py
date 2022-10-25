@@ -4,6 +4,7 @@
 
 # Libraries
 from filterpy.kalman import KalmanFilter
+from filterpy.common import Q_discrete_white_noise
 import numpy as np
 
 # Code
@@ -20,14 +21,23 @@ def main():
     # and our new velocity is the same as our old velocity
 
     f.H = np.array([[1.,0.]]) # Measurement function
-    # idk what this is
+    # the 1 represents that we can measure position
+    # the 0 represents that we cannot measure velocity
 
     f.P = np.array([[1000.,    0.],
                 [   0., 1000.] ]) # covariance matrix
     # represents the uncertainty in our measurements and estimates
 
     f.R = 5 # measurement noise
-    
+
+    f.Q = Q_discrete_white_noise(dim=2, dt=0.1, var=0.13) # process noise
+
+    # now we get an update loop:
+    while True:
+        z = float(input("Measurement is : ")) # get number from user
+        f.predict()
+        f.update(z)
+        print("Estimate of x is ",f.x)
 
 if __name__ == '__main__':
     main()
