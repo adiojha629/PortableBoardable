@@ -38,6 +38,7 @@ def main():
         f.predict()
         f.update(z)
         print("Estimate of x is ",f.x)
+        print("This is P ",f.P)
 
 if __name__ == '__main__':
     main()
