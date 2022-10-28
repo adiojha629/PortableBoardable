@@ -28,16 +28,30 @@ def click_event(event,x,y,flags,params):
         pFlag = True
 
 if __name__ == '__main__':
-    cap = cv2.VideoCapture(0)
+    video_file_path ="Videos/Chris_Shapes.mp4"
+    cap = cv2.VideoCapture(video_file_path)
+
+    # first loop: just show the first frame and wait for mouse click
+    for i in range(10):
+        ret, frame = cap.read()
+        frame = cv2.resize(frame,(750,500))
+    got_click = False
+    while not pFlag:
+        cv2.imshow('ClickOnPoint',frame) # display the frame
+        cv2.setMouseCallback('ClickOnPoint',click_event) # check for clicks
+        k = cv2.waitKey(30) & 0xff
+        if k == 27:
+            break
+
     mask = None
     maskFlag = False
     while(1):
         ret, frame = cap.read()
+        frame = cv2.resize(frame,(750,500))
         #frame = cv2.flip(frame,1)
         if not ret: # check that we have a video
             print('No frames grabbed!')
             break
-
         # set up mask for drawing over image
         if not maskFlag:
             # Create a mask image for drawing purposes
