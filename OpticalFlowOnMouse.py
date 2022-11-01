@@ -28,7 +28,7 @@ def click_event(event,x,y,flags,params):
         pFlag = True
 
 if __name__ == '__main__':
-    video_file_path ="Videos/Chris_Shapes.mp4"
+    video_file_path ="Videos/Chris_Ghost.mp4"
     cap = cv2.VideoCapture(video_file_path)
 
     # first loop: just show the first frame and wait for mouse click
