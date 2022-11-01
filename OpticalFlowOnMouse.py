@@ -19,12 +19,12 @@ def click_event(event,x,y,flags,params):
         print(x," ",y)
         # set p0
         global p0, pFlag
-        p0 = np.array([[x,y],
-                        [x+10,y],
-                        [x-10,y],
-                        [x,y+10],
-                        [x,y-10]]).reshape((-1,1,2)).astype(np.float32)
+        p0 = np.array([[x,y]]).reshape((-1,1,2)).astype(np.float32)
         print(p0)
+        # [x,y],
+        #                 [x+10,y],
+        #                 [x-10,y],
+        #                 [x,y+10],
         pFlag = True
 
 if __name__ == '__main__':
@@ -44,43 +44,47 @@ if __name__ == '__main__':
             break
 
     mask = None
+    offsetx = 15
+    offsety = -20
+
     maskFlag = False
     while(1):
         ret, frame = cap.read()
-        frame = cv2.resize(frame,(750,500))
-        #frame = cv2.flip(frame,1)
-        if not ret: # check that we have a video
-            print('No frames grabbed!')
-            break
-        # set up mask for drawing over image
-        if not maskFlag:
-            # Create a mask image for drawing purposes
-            mask = np.zeros_like(frame)
-            old_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            maskFlag = True
-        # check if we have a point to follow
-        if not pFlag:
-            cv2.imshow('ClickOnPoint',frame)
-            cv2.setMouseCallback('ClickOnPoint',click_event)
-        else: # do optical flow!
-            frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # calculate optical flow
-            p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
-            # Select good points
-            if p1 is not None:
-                good_new = p1[st==1]
-                good_old = p0[st==1]
-            # draw the tracks
-            for i, (new, old) in enumerate(zip(good_new, good_old)):
-                a, b = new.ravel()
-                c, d = old.ravel()
-                mask = cv2.line(mask, (int(a), int(b)), (int(c), int(d)), color[i].tolist(), 2)
-                frame = cv2.circle(frame, (int(a), int(b)), 5, color[i].tolist(), -1)
-            img = cv2.add(frame, mask)
-            cv2.imshow('frame', img)
-            # Now update the previous frame and previous points
-            old_gray = frame_gray.copy()
-            p0 = good_new.reshape(-1, 1, 2)
+        if ret: 
+            frame = cv2.resize(frame,(750,500))
+            #frame = cv2.flip(frame,1)
+            if not ret: # check that we have a video
+                print('No frames grabbed!')
+                break
+            # set up mask for drawing over image
+            if not maskFlag:
+                # Create a mask image for drawing purposes
+                mask = np.zeros_like(frame)
+                old_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                maskFlag = True
+            # check if we have a point to follow
+            if not pFlag:
+                cv2.imshow('ClickOnPoint',frame)
+                cv2.setMouseCallback('ClickOnPoint',click_event)
+            else: # do optical flow!
+                frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # calculate optical flow
+                p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
+                # Select good points
+                if p1 is not None:
+                    good_new = p1[st==1]
+                    good_old = p0[st==1]
+                # draw the tracks
+                for i, (new, old) in enumerate(zip(good_new, good_old)):
+                    a, b = new.ravel()
+                    c, d = old.ravel()
+                    mask = cv2.line(mask, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), color[i].tolist(), 2)
+                    frame = cv2.circle(frame, (int(a-offsetx), int(b-offsety)), 5, color[i].tolist(), -1)
+                img = cv2.add(frame, mask)
+                cv2.imshow('frame', img)
+                # Now update the previous frame and previous points
+                old_gray = frame_gray.copy()
+                p0 = good_new.reshape(-1, 1, 2)
         k = cv2.waitKey(30) & 0xff
         if k == 27:
             break
