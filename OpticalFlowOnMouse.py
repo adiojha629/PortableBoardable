@@ -1,3 +1,4 @@
+from enum import auto
 import numpy as np
 import cv2
 # based on https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
@@ -26,9 +27,32 @@ def click_event(event,x,y,flags,params):
         #                 [x-10,y],
         #                 [x,y+10],
         pFlag = True
+buffer = []
+def auto_offset(img,x,y):
+    #window = img[x-7:x+7][y-7:y+7]      #Make 15x15 window
+    thresh = 150
+    i_max = -1
+    j_max = -1
+    d_max = -1
+    for i in range(x-7,x+7+1):
+        for j in range(y-7,y+7+1):
+            red_component = img[j][i][2]
+            if red_component > thresh:
+                d = np.sqrt((x-i)**2 + (y-j)**2)
+                if d > d_max and (i,j) not in buffer:
+                    i_max = i
+                    j_max = j
+                    d_max = d
+    # done searching
+    if i_max == -1:
+        print("Did not find red component. Please change threshold or windowsize")
+        # once threshold is set, we'll use this branch to remove the line
+    else:
+        buffer.append((i_max,j_max))
+        return i_max,j_max
 
 if __name__ == '__main__':
-    video_file_path ="Videos/Chris_Ghost.mp4"
+    video_file_path ="Videos/Chris_Shapes.mp4"
     cap = cv2.VideoCapture(video_file_path)
 
     # first loop: just show the first frame and wait for mouse click
@@ -44,8 +68,8 @@ if __name__ == '__main__':
             break
 
     mask = None
-    offsetx = 15
-    offsety = -20
+    offsetx = 5
+    offsety = -5
 
     maskFlag = False
     while(1):
@@ -77,8 +101,9 @@ if __name__ == '__main__':
                 # draw the tracks
                 for i, (new, old) in enumerate(zip(good_new, good_old)):
                     a, b = new.ravel()
+                    a,b = auto_offset(frame,int(a),int(b))
                     c, d = old.ravel()
-                    mask = cv2.line(mask, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), color[i].tolist(), 2)
+                    mask = cv2.line(mask, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), (255,0,0), 2) # blue line
                     frame = cv2.circle(frame, (int(a-offsetx), int(b-offsety)), 5, color[i].tolist(), -1)
                 img = cv2.add(frame, mask)
                 cv2.imshow('frame', img)
