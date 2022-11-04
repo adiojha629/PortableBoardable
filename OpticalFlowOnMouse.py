@@ -1,6 +1,7 @@
 from enum import auto
 import numpy as np
 import cv2
+import matplotlib as plt
 # based on https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
 p0 = None
 pFlag = False
@@ -30,12 +31,13 @@ def click_event(event,x,y,flags,params):
 buffer = []
 def auto_offset(img,x,y):
     #window = img[x-7:x+7][y-7:y+7]      #Make 15x15 window
-    thresh = 150
+    thresh = 100
+    w_size = 2
     i_max = -1
     j_max = -1
     d_max = -1
-    for i in range(x-7,x+7+1):
-        for j in range(y-7,y+7+1):
+    for i in range(x-w_size,x+w_size+1):
+        for j in range(y-w_size,y+w_size+1):
             red_component = img[j][i][2]
             if red_component > thresh:
                 d = np.sqrt((x-i)**2 + (y-j)**2)
@@ -50,6 +52,7 @@ def auto_offset(img,x,y):
     else:
         buffer.append((i_max,j_max))
         return i_max,j_max
+#def final_offset(img):
 
 if __name__ == '__main__':
     video_file_path ="Videos/Chris_Shapes.mp4"
@@ -68,11 +71,15 @@ if __name__ == '__main__':
             break
 
     mask = None
-    offsetx = 5
-    offsety = -5
+    marker = None # has our lines that will be drawn on the whiteboard
+    offsetx = 0
+    offsety = 0
+
+    whiteboard = np.zeros((500,750,3),dtype=np.uint8) # variable holds our whiteboard
 
     maskFlag = False
     while(1):
+        cv2.imshow("Whiteboard",whiteboard)
         ret, frame = cap.read()
         if ret: 
             frame = cv2.resize(frame,(750,500))
@@ -84,6 +91,7 @@ if __name__ == '__main__':
             if not maskFlag:
                 # Create a mask image for drawing purposes
                 mask = np.zeros_like(frame)
+                marker = np.zeros_like(frame)
                 old_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 maskFlag = True
             # check if we have a point to follow
@@ -104,12 +112,18 @@ if __name__ == '__main__':
                     a,b = auto_offset(frame,int(a),int(b))
                     c, d = old.ravel()
                     mask = cv2.line(mask, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), (255,0,0), 2) # blue line
+                    marker = cv2.line(marker, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), (255,255,255), 2)
                     frame = cv2.circle(frame, (int(a-offsetx), int(b-offsety)), 5, color[i].tolist(), -1)
+                print(whiteboard.dtype)
+                print(mask.dtype)
+                #adi = input()
+                whiteboard = cv2.add(whiteboard, marker)
                 img = cv2.add(frame, mask)
                 cv2.imshow('frame', img)
                 # Now update the previous frame and previous points
                 old_gray = frame_gray.copy()
                 p0 = good_new.reshape(-1, 1, 2)
+                #path.append(p0)
         k = cv2.waitKey(30) & 0xff
         if k == 27:
             break
