@@ -1,3 +1,4 @@
+from ctypes.wintypes import RGB
 from enum import auto
 import numpy as np
 import cv2
@@ -29,16 +30,17 @@ def click_event(event,x,y,flags,params):
         #                 [x,y+10],
         pFlag = True
 buffer = []
+
 def auto_offset(img,x,y):
     #window = img[x-7:x+7][y-7:y+7]      #Make 15x15 window
-    thresh = 100
+    thresh = 50  # 100 is ideal thresh for Red
     w_size = 2
     i_max = -1
     j_max = -1
     d_max = -1
     for i in range(x-w_size,x+w_size+1):
         for j in range(y-w_size,y+w_size+1):
-            red_component = img[j][i][2]
+            red_component = img[j][i][1]    # [0] = B, [1] = G, [2] = R
             if red_component > thresh:
                 d = np.sqrt((x-i)**2 + (y-j)**2)
                 if d > d_max and (i,j) not in buffer:
@@ -55,7 +57,7 @@ def auto_offset(img,x,y):
 #def final_offset(img):
 
 if __name__ == '__main__':
-    video_file_path ="Videos/Chris_Shapes.mp4"
+    video_file_path = "Videos/chris_ghost_green.mp4"
     cap = cv2.VideoCapture(video_file_path)
 
     # first loop: just show the first frame and wait for mouse click
@@ -69,7 +71,10 @@ if __name__ == '__main__':
         k = cv2.waitKey(30) & 0xff
         if k == 27:
             break
-
+    x = int(p0[0][0][0])
+    y = int(p0[0][0][1])
+    print(frame[x][y])
+    # colby = input("Press enter to continue program")
     mask = None
     marker = None # has our lines that will be drawn on the whiteboard
     offsetx = 0
@@ -109,11 +114,11 @@ if __name__ == '__main__':
                 # draw the tracks
                 for i, (new, old) in enumerate(zip(good_new, good_old)):
                     a, b = new.ravel()
-                    a,b = auto_offset(frame,int(a),int(b))
+                    #a,b = auto_offset(frame,int(a),int(b))
                     c, d = old.ravel()
                     mask = cv2.line(mask, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), (255,0,0), 2) # blue line
                     marker = cv2.line(marker, (int(a-offsetx), int(b-offsety)), (int(c-offsetx), int(d-offsety)), (255,255,255), 2)
-                    frame = cv2.circle(frame, (int(a-offsetx), int(b-offsety)), 5, color[i].tolist(), -1)
+                    frame = cv2.circle(frame, (int(a-offsetx), int(b-offsety)), 5, (255,0,0), -1)
                 print(whiteboard.dtype)
                 print(mask.dtype)
                 #adi = input()
